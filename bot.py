@@ -349,12 +349,12 @@ async def channel_check(message: Message, bot: Bot) -> None:
         status = getattr(member, "status", "unknown")
         can_post = getattr(member, "can_post_messages", None)
         await message.answer(
-            "Public channel connection check:\\n"
-            f"Channel: {chat.title}\\n"
-            f"Username: {PUBLIC_CHANNEL_USERNAME}\\n"
-            f"Channel ID: {chat.id}\\n"
-            f"Bot status: {status}\\n"
-            f"Can post messages: {can_post if can_post is not None else 'Check admin permissions in Telegram'}\\n\\n"
+            "Public channel connection check:\n"
+            f"Channel: {chat.title}\n"
+            f"Username: {PUBLIC_CHANNEL_USERNAME}\n"
+            f"Channel ID: {chat.id}\n"
+            f"Bot status: {status}\n"
+            f"Can post messages: {can_post if can_post is not None else 'Check admin permissions in Telegram'}\n\n"
             "If the bot is not an administrator, add it as a channel administrator and allow posting messages."
         )
     except Exception:
