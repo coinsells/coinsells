@@ -30,6 +30,7 @@ log = logging.getLogger("coinsells")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 ADMIN_IDS = {int(v.strip()) for v in os.getenv("TELEGRAM_ADMIN_IDS", "").split(",") if v.strip().isdigit()}
 DEPOSIT_ADDRESS = os.getenv("USDT_TRC20_ADDRESS", "").strip()
+PUBLIC_CHANNEL_USERNAME = os.getenv("PUBLIC_CHANNEL_USERNAME", "@coinsells").strip()
 USDT_CONTRACT = os.getenv("USDT_TRC20_CONTRACT", "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj").strip()
 TRON_API_BASE = os.getenv("TRON_API_BASE", "https://api.trongrid.io").rstrip("/")
 TRON_API_KEY = os.getenv("TRON_API_KEY", "").strip()
@@ -331,6 +332,37 @@ async def receive_bank_details(message: Message, state: FSMContext, bot: Bot) ->
             await bot.send_message(admin_id, admin_text, reply_markup=order_admin_keyboard(order_id))
         except Exception:
             log.exception("Failed to notify admin %s about order %s", admin_id, order_id)
+
+
+@router.message(Command("channelcheck"))
+async def channel_check(message: Message, bot: Bot) -> None:
+    """Check whether the bot can access the configured public channel and post there."""
+    if not message.from_user or message.from_user.id not in ADMIN_IDS:
+        await message.answer("This command is for administrators only.")
+        return
+    if not PUBLIC_CHANNEL_USERNAME:
+        await message.answer("PUBLIC_CHANNEL_USERNAME is not configured.")
+        return
+    try:
+        chat = await bot.get_chat(PUBLIC_CHANNEL_USERNAME)
+        member = await bot.get_chat_member(chat.id, bot.id)
+        status = getattr(member, "status", "unknown")
+        can_post = getattr(member, "can_post_messages", None)
+        await message.answer(
+            "Public channel connection check:\\n"
+            f"Channel: {chat.title}\\n"
+            f"Username: {PUBLIC_CHANNEL_USERNAME}\\n"
+            f"Channel ID: {chat.id}\\n"
+            f"Bot status: {status}\\n"
+            f"Can post messages: {can_post if can_post is not None else 'Check admin permissions in Telegram'}\\n\\n"
+            "If the bot is not an administrator, add it as a channel administrator and allow posting messages."
+        )
+    except Exception:
+        log.exception("Public channel check failed for %s", PUBLIC_CHANNEL_USERNAME)
+        await message.answer(
+            "Could not access the configured channel. Confirm the username is correct and that the bot "
+            "has been added to the channel. No message was published."
+        )
 
 
 @router.message(Command("orders"))
