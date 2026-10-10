@@ -148,7 +148,7 @@ async def verify_usdt_transfer(txid: str, expected_amount: Decimal) -> tuple[boo
         contract = str(event.get("contract_address", ""))
         result = event.get("result") or {}
         recipient = str(result.get("to", ""))
-        if contract.lower() != USDT_CONTRACT.lower() or recipient != DEPOSIT_ADDRESS:
+        if contract != USDT_CONTRACT or recipient != DEPOSIT_ADDRESS:
             continue
         destination_seen = True
         try:
